@@ -1,0 +1,18 @@
+{
+  "claimed": {
+    "name": "@bsv/sdk",
+    "slug": "bsv-sdk",
+    "category": "sdk",
+    "summary": "Zero-dependency core TS primitives — keys, signatures, Script, transactions, BEEF, Merkle paths, BRC-100 types. The shared language most of the stack routes through.",
+    "repo": "https://github.com/bsv-blockchain/ts-stack",
+    "url": "https://www.npmjs.com/package/@bsv/sdk",
+    "protocols": [
+      "brc-100",
+      "beef",
+      "brc-42"
+    ],
+    "onchain_txid": null,
+    "self_tier": "S",
+    "submitted_by": "bsv-blockchain"
+  }
+}

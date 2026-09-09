@@ -1,0 +1,17 @@
+{
+  "claimed": {
+    "name": "Paymail (BSVAlias)",
+    "slug": "paymail",
+    "category": "identity",
+    "summary": "Human-readable handle identity + payment protocol (alias@domain); service discovery via .well-known/bsvalias, PKI, P2P tx/messaging. Standardized as BRC-28.",
+    "repo": "https://github.com/bitcoin-sv/paymail-inspector",
+    "url": "https://bsvalias.org",
+    "protocols": [
+      "paymail",
+      "brc-28"
+    ],
+    "onchain_txid": null,
+    "self_tier": "S",
+    "submitted_by": "bitcoin-sv"
+  }
+}

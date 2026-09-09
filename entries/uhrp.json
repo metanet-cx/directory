@@ -1,0 +1,18 @@
+{
+  "claimed": {
+    "name": "UHRP (BRC-26)",
+    "slug": "uhrp",
+    "category": "storage",
+    "summary": "Universal Hash Resolution Protocol — decentralized content-addressed storage/discovery; hosts advertise file availability via PushDrop tokens on overlay. Content addressing for the on-chain web.",
+    "repo": "https://github.com/bitcoin-sv/BRCs",
+    "url": "https://bsv.brc.dev/apps/0026",
+    "protocols": [
+      "uhrp",
+      "brc-26",
+      "ship"
+    ],
+    "onchain_txid": null,
+    "self_tier": "S",
+    "submitted_by": "bitcoin-sv"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "claimed": {
+    "name": "JungleBus (GorillaPool)",
+    "slug": "junglebus",
+    "category": "indexer",
+    "summary": "High-power blockchain indexer / overlay engine; filtered mempool + on-chain subscriptions so apps skip full sync.",
+    "repo": "https://github.com/GorillaPool/junglebus",
+    "url": "https://junglebus.gorillapool.io",
+    "protocols": [
+      "junglebus"
+    ],
+    "onchain_txid": null,
+    "self_tier": "A",
+    "submitted_by": "gorillapool"
+  }
+}

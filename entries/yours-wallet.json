@@ -1,0 +1,18 @@
+{
+  "claimed": {
+    "name": "Yours Wallet",
+    "slug": "yours-wallet",
+    "category": "wallet",
+    "summary": "Non-custodial Chrome extension wallet; BRC-100 compliant, supports BSV, 1Sat Ordinals, tokens, MNEE, on-chain identity, dApps.",
+    "repo": "https://github.com/yours-org/yours-wallet",
+    "url": "https://yours.org",
+    "protocols": [
+      "brc-100",
+      "1sat",
+      "paymail"
+    ],
+    "onchain_txid": null,
+    "self_tier": "B",
+    "submitted_by": "yours-org"
+  }
+}

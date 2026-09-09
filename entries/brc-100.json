@@ -1,0 +1,17 @@
+{
+  "claimed": {
+    "name": "BRC-100",
+    "slug": "brc-100",
+    "category": "identity",
+    "summary": "Vendor-neutral wallet-to-application interface (createAction, listOutputs, BRC-42 key derivation, permissions, baskets, certificates). The socket apps and wallets speak to interop.",
+    "repo": "https://github.com/bitcoin-sv/BRCs",
+    "url": "https://bsv.brc.dev/wallet/0100",
+    "protocols": [
+      "brc-100",
+      "brc-42"
+    ],
+    "onchain_txid": null,
+    "self_tier": "S",
+    "submitted_by": "bitcoin-sv"
+  }
+}

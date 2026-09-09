@@ -1,0 +1,19 @@
+{
+  "claimed": {
+    "name": "@bsv/overlay",
+    "slug": "bsv-overlay",
+    "category": "overlay",
+    "summary": "Core TS overlay engine — topic managers, lookup services, SHIP/SLAP/GASP/BASM, pluggable storage backends. The discovery/routing layer for BRC-100 apps.",
+    "repo": "https://github.com/bsv-blockchain/ts-stack",
+    "url": "https://www.npmjs.com/package/@bsv/overlay",
+    "protocols": [
+      "ship",
+      "slap",
+      "gasp",
+      "brc-100"
+    ],
+    "onchain_txid": null,
+    "self_tier": "S",
+    "submitted_by": "bsv-blockchain"
+  }
+}

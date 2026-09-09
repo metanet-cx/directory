@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+
+# Attestation store is MACHINE-WRITTEN output, never authored by hand or shipped
+# with mock data. In production it lives in a pushed data branch (its own off-box
+# backup). Locally generated stub attestations must not enter the public history —
+# publishing mock uptime numbers is the exact fake-attestation the project forbids.
+data/attested/*.json
+data/series/*.jsonl

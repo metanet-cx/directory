@@ -1,0 +1,25 @@
+name: entry-check
+# Runs on every PR touching entries/. Enforces the trust model at the gate:
+# valid claimed: blocks, and NO author-supplied attested: blocks.
+on:
+  pull_request:
+    paths:
+      - "entries/**"
+      - "scripts/schema.py"
+      - "scripts/check_pr.py"
+  push:
+    branches: [main]
+    paths:
+      - "entries/**"
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate entries + reject author-written attestations
+        working-directory: scripts
+        run: python check_pr.py

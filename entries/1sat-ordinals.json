@@ -1,0 +1,17 @@
+{
+  "claimed": {
+    "name": "1Sat Ordinals",
+    "slug": "1sat-ordinals",
+    "category": "token",
+    "summary": "Ordinals-compatible inscription protocol optimized for BSV; tokens/NFTs by attaching data to single-sat outputs, sCrypt for logic. The dominant BSV token/NFT protocol.",
+    "repo": "https://github.com/bitcoinschema/1sat-ordinals",
+    "url": "https://1satordinals.com",
+    "protocols": [
+      "1sat",
+      "brc-100"
+    ],
+    "onchain_txid": null,
+    "self_tier": "A",
+    "submitted_by": "bitcoinschema"
+  }
+}
