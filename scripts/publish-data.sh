@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+# Publish the machine-written attestation store to the `data` branch.
+#
+# The store (data/attested/*.json, data/series/*.jsonl) is gitignored on `main`
+# by design — main holds only human-authored claims + code, never machine data.
+# This script pushes the current store to a dedicated orphan `data` branch, which
+# serves two purposes at once:
+#   1. it IS the off-box backup of the attestation history (gemcity lesson: never
+#      let the metrics store become opaque on-box-only state), and
+#   2. it's what the Cloudflare Pages build fetches so the live site can render
+#      real, earned scores (pages-build.sh pulls it before running build.py).
+#
+# Safe to run on a timer: uses a throwaway worktree, never touches the main
+# checkout, and is a no-op commit-wise when nothing changed.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
+
+BRANCH="data"
+WT="$(mktemp -d)"
+trap 'git worktree remove --force "$WT" 2>/dev/null || true; rm -rf "$WT"' EXIT
+
+# Fetch the remote data branch if it exists; otherwise we'll create it orphaned.
+if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
+  git fetch origin "$BRANCH":"refs/remotes/origin/$BRANCH" >/dev/null 2>&1 || true
+  git worktree add --force -B "$BRANCH" "$WT" "origin/$BRANCH" >/dev/null
+else
+  git worktree add --force --detach "$WT" >/dev/null
+  git -C "$WT" checkout --orphan "$BRANCH" >/dev/null 2>&1
+  git -C "$WT" rm -rf . >/dev/null 2>&1 || true
+fi
+
+# Replace the store wholesale with the current local store.
+rm -rf "$WT/attested" "$WT/series"
+mkdir -p "$WT/attested" "$WT/series"
+# Copy only if there's something to copy (globs may be empty on a first run).
+if compgen -G "data/attested/*.json" >/dev/null; then cp data/attested/*.json "$WT/attested/"; fi
+if compgen -G "data/series/*.jsonl" >/dev/null; then cp data/series/*.jsonl "$WT/series/"; fi
+
+cat > "$WT/README.md" <<'EOF'
+# metanet.cx — attestation store (machine-written)
+
+This branch is **not** human-authored. It is the output of `scripts/attestor.py`,
+published each attestor cycle. `pages-build.sh` fetches it so the live site can
+render real, earned scores. Do not open PRs against this branch — submit listings
+via `entries/` on `main`.
+
+- `attested/<slug>.json` — latest attested block per entry
+- `series/<slug>.jsonl` — append-only liveness history (feeds uptime_90d)
+EOF
+
+git -C "$WT" add -A
+if git -C "$WT" diff --cached --quiet; then
+  echo "publish-data: store unchanged, nothing to publish"
+  exit 0
+fi
+
+STAMP="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+git -C "$WT" commit -q -m "attestor store: $STAMP"
+git -C "$WT" push -q origin "$BRANCH"
+echo "publish-data: pushed attestation store to origin/$BRANCH ($STAMP)"
