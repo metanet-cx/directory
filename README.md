@@ -53,14 +53,33 @@ begins measuring you. Your rank is earned from those measurements, not your clai
     python3 scripts/attestor.py          # stub attestor (mock probes; writes data/attested/)
     python3 scripts/attestor.py --slug X # attest one entry
     python3 scripts/rank.py              # objective ranking (join claimed + attested)
+    python3 scripts/build.py             # render static site -> site/ (what Pages deploys)
+
+`build.py` joins each entry's `claimed` block with its `attested` block (if any)
+and writes `site/index.html`, `site/style.css`, and `site/entry/<slug>.html`.
+With an empty `data/` (a fresh clone, and what Pages builds from) every entry
+renders as **unattested** — no invented uptime, latency, or pass marks. `site/`
+is build output and gitignored.
 
 The attestor is a **stub**: probes are deterministic mocks so the whole loop,
 store, ranking, and file round-trip run with no box and no network. `--live`
 is reserved for wiring real HTTP / protocol / SPV probes (currently raises).
 
-## Deployment (planned, nothing live yet)
+## Deployment
 
-- **Static site** → Cloudflare Pages, renders this repo on push.
+**Static site → Cloudflare Pages** (renders this repo on push). Create the
+project against `metanet-cx/directory` with:
+
+- **Framework preset:** None
+- **Build command:** `scripts/pages-build.sh`  (runs `python3 scripts/build.py`)
+- **Build output directory:** `site`
+- **Production branch:** `main`
+
+Then add `metanet.cx` (and `www`) under the project's **Custom domains** — Pages
+creates the correct CNAME in the Cloudflare zone and provisions the cert. That
+replaces the Namecheap parking records. No app server; merges auto-rebuild.
+
+Remaining:
 - **Attestor** → bsv.cx box, alongside the SPV node (on-chain verify stays a
   local call). The only box-coupled call is `spv_verify()` in `attestor.py`;
   swap it for an auth'd `POST bsv.cx/verify` to relocate the attestor off-box.
