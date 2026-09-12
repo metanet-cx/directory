@@ -5,7 +5,7 @@
     "category": "identity",
     "summary": "Human-readable handle identity + payment protocol (alias@domain); service discovery via .well-known/bsvalias, PKI, P2P tx/messaging. Standardized as BRC-28.",
     "repo": "https://github.com/bitcoin-sv/paymail-inspector",
-    "url": "https://bsvalias.org",
+    "url": "https://bsv.brc.dev/payments/0028",
     "protocols": [
       "paymail",
       "brc-28"
