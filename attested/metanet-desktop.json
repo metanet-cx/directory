@@ -1,8 +1,8 @@
 {
-  "checked_at": "2026-09-12T22:00:13+00:00",
+  "checked_at": "2026-09-12T22:30:13+00:00",
   "live": true,
   "uptime_90d": 1.0,
-  "latency_ms": 1136,
+  "latency_ms": 953,
   "protocol_checks": {
     "brc-100": "untested"
   },
@@ -11,7 +11,7 @@
       "state": "na",
       "method": "na",
       "by": null,
-      "at": "2026-09-12T22:00:13+00:00",
+      "at": "2026-09-12T22:30:13+00:00",
       "note": null
     }
   },
