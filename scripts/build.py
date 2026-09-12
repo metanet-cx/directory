@@ -51,7 +51,7 @@ def load() -> list[dict]:
             "slug": slug,
             "claimed": claimed,
             "attested": attested,
-            "score": score(attested) if attested else None,
+            "score": score(attested, bool(claimed.get("onchain_txid"))) if attested else None,
         })
     # Attested entries first, by score desc; unattested last, alpha by name.
     rows.sort(key=lambda r: (

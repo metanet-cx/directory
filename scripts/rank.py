@@ -7,6 +7,16 @@ Score inputs (all machine-measured, never author claims):
   onchain_verified      weight 0.15
   repo freshness        weight 0.10   (1.0 if commit <90d, linear to 0 at 365d)
 
+A weight is only levied when it is actually measurable for an entry. If no
+protocol is gradeable (no probe defined / all untested), the 0.30 folds back so
+the entry isn't penalized for a probe we haven't written. Likewise, onchain is
+only scored when the entry CLAIMS an onchain_txid; an entry that makes no
+on-chain claim has nothing to verify, so the 0.15 folds back rather than docking
+every entry for a dimension it never entered. (This also means our own
+not-yet-synced SPV node can't silently cap the whole field at 0.85.) An entry
+that DOES claim a txid but fails verification keeps the 0.15 and scores 0 on it —
+that's a real, earned penalty for an unbacked claim.
+
 self_tier (author claim) and any editorial interop tier are NEVER inputs here.
 Editorial tiers render in a separate labeled column in the site — never blended
 into this number. Mixing them is the credibility leak the project exists to avoid.
@@ -46,16 +56,42 @@ def proto_pass_ratio(checks: dict) -> float | None:
     return sum(1 for v in graded if v == "pass") / len(graded)
 
 
-def score(attested: dict) -> float:
+def score(attested: dict, claims_onchain: bool = False) -> float:
+    """Weighted score. A weight is only levied when it's measurable for the entry.
+
+    `claims_onchain` is True iff the entry's claim carries an onchain_txid. When
+    False there is nothing to verify, so the onchain weight folds away rather
+    than docking the entry for a dimension it never entered. When True, a failed
+    verification keeps the weight and scores 0 on it — an earned penalty.
+    """
     uptime = float(attested.get("uptime_90d") or 0.0)
     pr = proto_pass_ratio(attested.get("protocol_checks") or {})
-    onchain = 1.0 if attested.get("onchain_verified") else 0.0
     fresh = repo_freshness(attested.get("last_commit"))
-    # If no protocol was gradeable, redistribute its weight to uptime rather than
-    # penalizing a project for having no probe defined yet.
+
+    # Base weights for the always-present dimensions.
+    w_up, w_proto, w_onchain, w_repo = W_UPTIME, W_PROTO, W_ONCHAIN, W_REPO
+    score_proto = pr if pr is not None else 0.0
+    score_onchain = 1.0 if attested.get("onchain_verified") else 0.0
+
+    # Fold away unlevied weights onto the measurable dimensions (uptime/repo),
+    # so an entry is never penalized for a dimension it can't enter.
+    slack = 0.0
     if pr is None:
-        return round((W_UPTIME + W_PROTO) * uptime + W_ONCHAIN * onchain + W_REPO * fresh, 4)
-    return round(W_UPTIME * uptime + W_PROTO * pr + W_ONCHAIN * onchain + W_REPO * fresh, 4)
+        slack += w_proto
+        w_proto = 0.0
+    if not claims_onchain:
+        slack += w_onchain
+        w_onchain = 0.0
+    # Redistribute the slack proportionally across the remaining levied weights.
+    levied = w_up + w_proto + w_onchain + w_repo
+    if levied > 0:
+        w_up += slack * (w_up / levied)
+        w_proto += slack * (w_proto / levied)
+        w_onchain += slack * (w_onchain / levied)
+        w_repo += slack * (w_repo / levied)
+
+    return round(w_up * uptime + w_proto * score_proto
+                 + w_onchain * score_onchain + w_repo * fresh, 4)
 
 
 def main() -> int:
@@ -67,7 +103,8 @@ def main() -> int:
         if not attested:
             rows.append((-1.0, claimed.get("name", path.stem), "UNATTESTED"))
             continue
-        rows.append((score(attested), claimed.get("name", path.stem),
+        claims_onchain = bool(claimed.get("onchain_txid"))
+        rows.append((score(attested, claims_onchain), claimed.get("name", path.stem),
                      f"up={attested.get('uptime_90d')} onchain={attested.get('onchain_verified')} "
                      f"self_tier={claimed.get('self_tier')}"))
     rows.sort(key=lambda r: r[0], reverse=True)
