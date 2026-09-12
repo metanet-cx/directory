@@ -1,8 +1,8 @@
 {
-  "checked_at": "2026-09-12T14:30:09+00:00",
+  "checked_at": "2026-09-12T15:00:08+00:00",
   "live": true,
   "uptime_90d": 1.0,
-  "latency_ms": 937,
+  "latency_ms": 1160,
   "protocol_checks": {
     "ship": "untested",
     "slap": "untested",

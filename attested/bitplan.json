@@ -1,8 +1,8 @@
 {
-  "checked_at": "2026-09-12T14:30:00+00:00",
+  "checked_at": "2026-09-12T15:00:00+00:00",
   "live": true,
   "uptime_90d": 1.0,
-  "latency_ms": 873,
+  "latency_ms": 1102,
   "protocol_checks": {
     "1sat": "untested",
     "brc-100": "untested"
