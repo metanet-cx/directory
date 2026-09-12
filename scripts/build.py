@@ -27,8 +27,8 @@ import json
 import pathlib
 import shutil
 
-from schema import ENTRIES_DIR, ENTRY_GLOB, CATEGORIES
-from rank import score, proto_pass_ratio, ATTESTED_DIR
+from schema import ENTRIES_DIR, ENTRY_GLOB, CATEGORIES, effective_state
+from rank import score, ATTESTED_DIR
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SITE_DIR = ROOT / "site"
@@ -39,24 +39,50 @@ def esc(x) -> str:
     return html.escape("" if x is None else str(x))
 
 
+def effective_states(att: dict | None) -> dict:
+    """Per-protocol states as they read RIGHT NOW: apply manual decay so a stale
+    human confirm shows as pending. Empty dict when unattested."""
+    if not att:
+        return {}
+    raw = att.get("protocol_states") or {}
+    return {proto: effective_state(so) for proto, so in raw.items()}
+
+
+def confirmed_count(eff_states: dict) -> int:
+    return sum(1 for so in eff_states.values() if so.get("state") == "confirmed")
+
+
 def load() -> list[dict]:
-    """Return joined rows: {slug, claimed, attested|None, score|None}."""
+    """Return joined rows with effective states and a (backend) score.
+
+    The numeric score is still computed — it's kept for sorting tie-data and
+    logging — but it is NO LONGER rendered in the HTML (protocol-state badges
+    replace it as the public signal). ORDERING: most confirmed effective states
+    first, then uptime_90d, then name; unattested entries last.
+    """
     rows = []
     for path in sorted(ENTRIES_DIR.glob(ENTRY_GLOB)):
         slug = path.stem
         claimed = (json.loads(path.read_text()) or {}).get("claimed") or {}
         apath = ATTESTED_DIR / f"{slug}.json"
         attested = json.loads(apath.read_text()) if apath.exists() else None
+        eff = effective_states(attested)
         rows.append({
             "slug": slug,
             "claimed": claimed,
             "attested": attested,
+            "eff_states": eff,
+            "confirmed": confirmed_count(eff),
+            # backend only (not rendered); #4's gated signature: pass whether a
+            # txid was claimed so onchain weight folds unless earned/failed.
             "score": score(attested, bool(claimed.get("onchain_txid"))) if attested else None,
         })
-    # Attested entries first, by score desc; unattested last, alpha by name.
+    # Confirmed-state count desc, then measured uptime desc, then name.
+    # Unattested entries (no attested block) always sort last.
     rows.sort(key=lambda r: (
-        r["score"] is None,
-        -(r["score"] or 0.0),
+        r["attested"] is None,
+        -r["confirmed"],
+        -float((r["attested"] or {}).get("uptime_90d") or 0.0),
         (r["claimed"].get("name") or r["slug"]).lower(),
     ))
     return rows
@@ -70,18 +96,32 @@ def uptime_cell(att: dict | None) -> str:
     return f'<span class="pct {cls}">{pct:.1f}%</span>'
 
 
-def proto_cell(att: dict | None) -> str:
-    if not att:
+# Four-state badge styling: class + leading mark. "na" and "pending" are both
+# muted/neutral (neither a confirmed pass nor an earned fail) but distinct marks.
+_STATE_CLASS = {"confirmed": "good", "failed": "bad",
+                "pending": "pend", "na": "na"}
+_STATE_MARK = {"confirmed": "✓", "failed": "✗",
+               "pending": "•", "na": "–"}
+
+
+def proto_cell(eff_states: dict | None) -> str:
+    """Render each claimed protocol as a badge with its EFFECTIVE four-state
+    value (confirmed/failed/pending/na). eff_states is already decay-adjusted."""
+    if not eff_states:
         return '<span class="muted">—</span>'
-    checks = att.get("protocol_checks") or {}
-    if not checks:
-        return '<span class="muted">none</span>'
     bits = []
-    for proto, res in sorted(checks.items()):
-        cls = {"pass": "good", "fail": "bad"}.get(res, "muted")
-        mark = {"pass": "✓", "fail": "✗"}.get(res, "·")
-        bits.append(f'<span class="chk {cls}" title="{esc(proto)}: {esc(res)}">'
-                    f'{mark} {esc(proto)}</span>')
+    for proto, so in sorted(eff_states.items()):
+        state = so.get("state", "pending")
+        cls = _STATE_CLASS.get(state, "pend")
+        mark = _STATE_MARK.get(state, "•")
+        tip = f"{proto}: {state}"
+        method = so.get("method")
+        if method and method != "na":
+            tip += f" ({method})"
+        if so.get("note"):
+            tip += f" — {so['note']}"
+        bits.append(f'<span class="chk st-{esc(state)} {cls}" title="{esc(tip)}">'
+                    f'{mark} {esc(proto)}</span>')
     return " ".join(bits)
 
 
@@ -104,16 +144,17 @@ def row_html(i: int, r: dict) -> str:
     name = esc(c.get("name") or r["slug"])
     url = c.get("url")
     name_link = f'<a href="{esc(url)}" rel="noopener">{name}</a>' if url else name
-    score_txt = f'{r["score"]:.3f}' if r["score"] is not None else \
+    # Score is computed in load() but intentionally NOT rendered — the
+    # per-protocol state badges are the public signal now.
+    status_txt = proto_cell(r["eff_states"]) if att else \
         '<span class="muted" title="No attestation yet">unattested</span>'
     return f"""      <tr>
         <td class="rank">{i}</td>
         <td class="name">{name_link}<div class="sum">{esc(c.get('summary'))}</div>
             <a class="detail" href="entry/{esc(r['slug'])}.html">details →</a></td>
         <td class="cat">{esc(c.get('category'))}</td>
-        <td class="score">{score_txt}</td>
         <td>{uptime_cell(att)}</td>
-        <td class="proto">{proto_cell(att)}</td>
+        <td class="proto">{status_txt}</td>
         <td>{onchain_cell(att)}</td>
         <td class="st">{self_tier_cell(c)}</td>
       </tr>"""
@@ -145,9 +186,8 @@ def index_html(rows: list[dict]) -> str:
     <thead>
       <tr>
         <th>#</th><th>Project</th><th>Category</th>
-        <th title="Objective score — computed only from attested metrics">Score</th>
         <th title="Measured uptime over 90 days">Uptime</th>
-        <th title="Per-protocol conformance probes">Protocols</th>
+        <th title="Per-protocol conformance state: confirmed / failed / pending / n&#47;a">Protocols</th>
         <th title="txid confirmed against the bsv.cx SPV node">On-chain</th>
         <th title="Submitter&#39;s own interop claim — display only, never scored">Self&#8209;tier</th>
       </tr>
@@ -183,18 +223,23 @@ def entry_html(r: dict) -> str:
     links_html = " · ".join(links) or "—"
 
     if att:
-        pr = proto_pass_ratio(att.get("protocol_checks") or {})
+        eff = r["eff_states"]
+        n_conf = r["confirmed"]
+        n_total = len(eff)
         att_rows = f"""
       <tr><th>Checked</th><td>{esc(att.get('checked_at'))}</td></tr>
       <tr><th>Live</th><td>{'yes' if att.get('live') else 'no'}</td></tr>
       <tr><th>Uptime (90d)</th><td>{uptime_cell(att)}</td></tr>
       <tr><th>Latency</th><td>{esc(att.get('latency_ms'))}{' ms' if att.get('latency_ms') is not None else ''}</td></tr>
-      <tr><th>Protocols</th><td>{proto_cell(att)}{'' if pr is None else f' &middot; pass-ratio {pr:.0%}'}</td></tr>
+      <tr><th>Protocols</th><td>{proto_cell(eff)}</td></tr>
       <tr><th>On-chain</th><td>{onchain_cell(att)}</td></tr>
       <tr><th>Repo public</th><td>{'yes' if att.get('repo_public') else 'no'}</td></tr>
       <tr><th>Last commit</th><td>{esc(att.get('last_commit'))}</td></tr>
       <tr><th>Attestor</th><td>v{esc(att.get('attestor_version'))}</td></tr>"""
-        score_line = f'<p class="bigscore">{r["score"]:.3f}<span>objective score</span></p>'
+        # The objective score is computed (backend) but no longer shown; the
+        # header summarizes confirmed protocol states instead.
+        score_line = (f'<p class="bigscore">{n_conf}<span>of {n_total} claimed '
+                      f'protocol{"" if n_total == 1 else "s"} confirmed</span></p>')
         attested_block = f'<table class="kv">{att_rows}\n    </table>'
     else:
         score_line = '<p class="bigscore muted">unattested<span>no machine attestation yet</span></p>'
@@ -274,6 +319,8 @@ table.dir{width:100%;border-collapse:collapse;font-size:.92rem}
 .pct.ok,.ok{color:var(--ok)}
 .pct.bad,.chk.bad,.bad{color:var(--bad)}
 .muted{color:var(--muted)}
+.chk.pend{color:var(--ok)}
+.chk.na{color:var(--muted)}
 .proto{font-size:.8rem}
 .chk{display:inline-block;margin:0 .3rem .2rem 0;white-space:nowrap}
 .badge.chain{color:var(--acc);font-weight:600;font-size:.82rem}

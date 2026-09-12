@@ -43,18 +43,19 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-from schema import ENTRIES_DIR, ENTRY_GLOB
+from schema import ENTRIES_DIR, ENTRY_GLOB, protocol_state_rule
 
-ATTESTOR_VERSION = "0.2.0"
+ATTESTOR_VERSION = "0.3.0"
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SERIES_DIR = ROOT / "data" / "series"
 ATTESTED_DIR = ROOT / "data" / "attested"
 
-# Protocols we have a REAL probe defined for. Anything else -> "untested"
-# (honestly labeled, never faked as pass). brc-100 has no universal
-# unauthenticated probe yet, so it stays untested until one is defined —
-# claiming a pass we didn't measure is the exact lie the project forbids.
-PROBE_DEFINED = {"paymail"}
+# Protocols we have a REAL probe defined for. Anything else is graded "na" by
+# protocol_state_rule (honestly labeled, never faked as a pass). paymail uses
+# BSVAlias service discovery; ship/slap use the overlay host's unauthenticated
+# /listTopicManagers + /listLookupServiceProviders endpoints. Claiming a pass
+# we didn't measure is the exact lie the project forbids.
+PROBE_DEFINED = {"paymail", "ship", "slap"}
 
 HTTP_TIMEOUT = 10  # seconds
 USER_AGENT = f"metanet.cx-attestor/{ATTESTOR_VERSION} (+https://metanet.cx)"
@@ -137,7 +138,57 @@ def _paymail_probe(url: str | None) -> str:
     return "fail"
 
 
+def _ship_slap_probe(url: str | None) -> str:
+    """SHIP/SLAP overlay-host probe (PROVEN live mechanism).
+
+    A deployed BSV overlay host answers unauthenticated GET /listTopicManagers
+    (SHIP) and GET /listLookupServiceProviders (SLAP) with a JSON object/array.
+    We hit the host root derived from `url`. Returns:
+      "pass"  : status 200 AND body parses as a JSON dict/list.
+      "soft"  : 403/429 — the host is up but bot-walls automated clients; an
+                honest "unverified", NOT a failure (mirrors probe_liveness).
+      "fail"  : network error, or non-2xx that isn't 403/429, or a 200 whose
+                body is not valid JSON dict/list.
+    Both endpoints must be consulted; a single verified PASS is enough to
+    confirm the overlay surface, a soft answer holds, otherwise fail.
+    """
+    if not url:
+        return "fail"
+    p = urllib.parse.urlparse(url if "://" in url else "//" + url)
+    host = (p.netloc or "").split("@")[-1]
+    if not host:
+        return "fail"
+    base = f"https://{host}"
+    soft = False
+    for path in ("/listTopicManagers", "/listLookupServiceProviders"):
+        try:
+            status, body, _ = _http_get(base + path)
+        except urllib.error.HTTPError as e:
+            if e.code in (403, 429):
+                soft = True
+            continue
+        except (urllib.error.URLError, ssl.SSLError, OSError, ValueError):
+            continue
+        if status != 200:
+            continue
+        try:
+            doc = json.loads(body)
+        except (ValueError, UnicodeDecodeError):
+            continue
+        if isinstance(doc, (dict, list)):
+            return "pass"  # a single verified endpoint confirms the surface
+    if soft:
+        return "soft"  # host up but unverified (botwall) -> pending, not failed
+    return "fail"  # no verified endpoint and not merely bot-walled
+
+
 def probe_protocol(slug: str, proto: str, url: str | None, live_net: bool) -> str:
+    """Run the defined probe for a protocol. Returns one of:
+      "pass" | "fail" | "soft" | "untested".
+    "soft" means a live-but-bot-walled host (403/429) — honest pending, never a
+    failure. Callers map pass->confirmed, fail->failed, soft/untested->pending.
+    Only ever called for protocols whose state rule resolved to a probe.
+    """
     if proto not in PROBE_DEFINED:
         return "untested"
     if not url:
@@ -145,6 +196,8 @@ def probe_protocol(slug: str, proto: str, url: str | None, live_net: bool) -> st
     if live_net:
         if proto == "paymail":
             return _paymail_probe(url)
+        if proto in ("ship", "slap"):
+            return _ship_slap_probe(url)
         return "untested"
     return "pass" if _mock(slug + "|" + proto) > 0.15 else "fail"
 
@@ -220,6 +273,82 @@ def append_series(slug: str, checked_at: str, live: bool) -> float:
     return round(up / total, 4) if total else 0.0
 
 
+# --- per-protocol state (four-state model) -----------------------------------
+
+def _load_prior_states(slug: str) -> dict:
+    """Read the previously-stored protocol_states for this slug, so a cycle can
+    PRESERVE human work. Missing/corrupt store -> empty (start fresh)."""
+    f = ATTESTED_DIR / f"{slug}.json"
+    if not f.exists():
+        return {}
+    try:
+        prior = json.loads(f.read_text()) or {}
+    except (ValueError, OSError):
+        return {}
+    states = prior.get("protocol_states")
+    return states if isinstance(states, dict) else {}
+
+
+def _probe_state(slug: str, proto: str, url: str | None, live_net: bool,
+                 method: str, checked_at: str) -> dict:
+    """Run the defined probe and wrap the result as a state object.
+    pass->confirmed, fail->failed, soft(botwall)/untested->pending (honest:
+    a live-but-bot-walled host is unverified, never a failure)."""
+    res = probe_protocol(slug, proto, url, live_net)
+    state = {"pass": "confirmed", "fail": "failed"}.get(res, "pending")
+    return {"state": state, "method": method, "by": None, "at": checked_at,
+            "note": "bot-walled (403/429): host up, unverified"
+                    if res == "soft" else None}
+
+
+def compute_protocol_states(slug: str, claimed: dict, live_net: bool,
+                            checked_at: str, prior_states: dict) -> dict:
+    """Compute the state object for every claimed protocol.
+
+    MERGE-PRESERVE RULE (critical): probe-backed and "na" states are recomputed
+    and overwritten every cycle (they're machine-derived). But an existing
+    "manual" state object is PRESERVED untouched — a cycle must never clobber a
+    human confirm/fail. Only if no manual state exists yet do we seed a fresh
+    honest "pending". Manual decay is applied at READ time (effective_state),
+    not here, so the stored human judgement stays intact with its real `at`.
+    """
+    category = claimed.get("category")
+    url = claimed.get("url")
+    out: dict = {}
+    for proto in (claimed.get("protocols") or []):
+        rule = protocol_state_rule(category, proto, url)
+        prior = prior_states.get(proto)
+        prior_is_manual = isinstance(prior, dict) and prior.get("method") == "manual"
+
+        if rule.startswith("probe:"):
+            out[proto] = _probe_state(slug, proto, url, live_net, rule, checked_at)
+        elif rule == "manual":
+            # Preserve a human's prior manual state; else seed honest pending.
+            if prior_is_manual:
+                out[proto] = prior
+            else:
+                out[proto] = {"state": "pending", "method": "manual",
+                              "by": None, "at": checked_at, "note": None}
+        else:  # "na"
+            # Even na is overwritten each cycle — UNLESS a human explicitly
+            # recorded a manual judgement, which we never silently erase.
+            if prior_is_manual:
+                out[proto] = prior
+            else:
+                out[proto] = {"state": "na", "method": "na", "by": None,
+                              "at": checked_at, "note": None}
+    return out
+
+
+def states_to_checks(states: dict) -> dict:
+    """Derive the legacy protocol_checks {proto: pass|fail|untested} from the
+    four-state model so rank.py keeps working unchanged:
+      confirmed -> pass, failed -> fail, pending/na -> untested."""
+    mapping = {"confirmed": "pass", "failed": "fail"}
+    return {proto: mapping.get(so.get("state"), "untested")
+            for proto, so in states.items()}
+
+
 # --- main loop ---------------------------------------------------------------
 
 def attest_entry(path: pathlib.Path, live_net: bool) -> dict:
@@ -229,8 +358,11 @@ def attest_entry(path: pathlib.Path, live_net: bool) -> dict:
 
     live, latency = probe_liveness(slug, claimed.get("url"), live_net,
                                    claimed.get("probe_url"))
-    checks = {p: probe_protocol(slug, p, claimed.get("url"), live_net)
-              for p in (claimed.get("protocols") or [])}
+    prior_states = _load_prior_states(slug)
+    protocol_states = compute_protocol_states(slug, claimed, live_net,
+                                              checked_at, prior_states)
+    # Back-compat: rank.py still reads protocol_checks; derive it from states.
+    checks = states_to_checks(protocol_states)
     onchain = spv_verify(claimed.get("onchain_txid"), live_net)
     repo_public, last_commit = probe_repo(slug, claimed.get("repo"), live_net)
     uptime_90d = append_series(slug, checked_at, live)
@@ -241,6 +373,7 @@ def attest_entry(path: pathlib.Path, live_net: bool) -> dict:
         "uptime_90d": uptime_90d,
         "latency_ms": latency,
         "protocol_checks": checks,
+        "protocol_states": protocol_states,
         "onchain_verified": onchain,
         "repo_public": repo_public,
         "last_commit": last_commit,
@@ -272,8 +405,9 @@ def main() -> int:
     for path in files:
         a = attest_entry(path, args.live)
         flag = "up " if a["live"] else "DOWN"
+        st = {p: so["state"] for p, so in a["protocol_states"].items()}
         print(f"[{flag}] {path.stem:16} uptime90={a['uptime_90d']:.3f} "
-              f"checks={a['protocol_checks']} onchain={a['onchain_verified']}")
+              f"states={st} onchain={a['onchain_verified']}")
     print(f"attested {len(files)} entr{'y' if len(files) == 1 else 'ies'} "
           f"(mode={'LIVE' if args.live else 'stub'})")
     return 0
