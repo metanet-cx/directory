@@ -1,12 +1,9 @@
 {
-  "checked_at": "2026-09-12T13:00:03+00:00",
+  "checked_at": "2026-09-12T13:00:06+00:00",
   "live": true,
   "uptime_90d": 1.0,
-  "latency_ms": 675,
+  "latency_ms": 796,
   "protocol_checks": {
-    "ship": "untested",
-    "slap": "untested",
-    "gasp": "untested",
     "brc-100": "untested"
   },
   "onchain_verified": false,

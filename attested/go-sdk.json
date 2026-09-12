@@ -1,15 +1,14 @@
 {
-  "checked_at": "2026-09-12T13:00:07+00:00",
+  "checked_at": "2026-09-12T13:00:10+00:00",
   "live": true,
   "uptime_90d": 1.0,
-  "latency_ms": 556,
+  "latency_ms": 957,
   "protocol_checks": {
     "brc-100": "untested",
-    "brc-121": "untested",
-    "x402": "untested"
+    "beef": "untested"
   },
   "onchain_verified": false,
   "repo_public": true,
-  "last_commit": "2026-09-09T01:49:32Z",
+  "last_commit": "2026-09-12T02:37:13Z",
   "attestor_version": "0.2.0"
 }

@@ -1,14 +1,14 @@
 {
-  "checked_at": "2026-09-12T13:00:14+00:00",
+  "checked_at": "2026-09-12T13:00:19+00:00",
   "live": true,
-  "uptime_90d": 0.0833,
-  "latency_ms": 408,
+  "uptime_90d": 1.0,
+  "latency_ms": 518,
   "protocol_checks": {
     "paymail": "fail",
     "brc-28": "untested"
   },
   "onchain_verified": false,
-  "repo_public": false,
-  "last_commit": null,
+  "repo_public": true,
+  "last_commit": "2026-06-12T17:56:57Z",
   "attestor_version": "0.2.0"
 }
