@@ -1,8 +1,8 @@
 {
-  "checked_at": "2026-09-12T17:30:17+00:00",
+  "checked_at": "2026-09-12T18:00:18+00:00",
   "live": true,
   "uptime_90d": 1.0,
-  "latency_ms": 521,
+  "latency_ms": 513,
   "protocol_checks": {
     "paymail": "fail",
     "brc-28": "untested"
