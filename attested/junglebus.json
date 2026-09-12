@@ -1,13 +1,22 @@
 {
-  "checked_at": "2026-09-12T18:30:12+00:00",
+  "checked_at": "2026-09-12T19:00:12+00:00",
   "live": true,
   "uptime_90d": 1.0,
-  "latency_ms": 328,
+  "latency_ms": 269,
   "protocol_checks": {
     "junglebus": "untested"
+  },
+  "protocol_states": {
+    "junglebus": {
+      "state": "na",
+      "method": "na",
+      "by": null,
+      "at": "2026-09-12T19:00:12+00:00",
+      "note": null
+    }
   },
   "onchain_verified": false,
   "repo_public": false,
   "last_commit": null,
-  "attestor_version": "0.2.0"
+  "attestor_version": "0.3.0"
 }
