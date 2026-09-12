@@ -1,0 +1,18 @@
+{
+  "claimed": {
+    "name": "BSVKey Inference MCP",
+    "slug": "bsvkey-inference",
+    "category": "payments",
+    "summary": "MCP server that sells Claude/Grok tokens paid in BSV. Two modes: prepaid BRC-100 channel (draw down per token) or x402/BRC-121 per-call. Signed usage receipts verified offline against byte counts; charge recomputed client-side, fails closed. Routes through the hosted gateway inference.bsvkey.com (self-host hook BSVKEY_BASE_URL exists, unproven).",
+    "repo": "https://github.com/bsvkey/inference-mcp",
+    "url": "https://www.npmjs.com/package/@bsvkey/inference-mcp",
+    "protocols": [
+      "brc-100",
+      "brc-121",
+      "x402"
+    ],
+    "onchain_txid": null,
+    "self_tier": "B",
+    "submitted_by": "bsvkey"
+  }
+}
