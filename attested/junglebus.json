@@ -1,8 +1,8 @@
 {
-  "checked_at": "2026-09-12T11:30:04+00:00",
+  "checked_at": "2026-09-12T12:00:05+00:00",
   "live": true,
   "uptime_90d": 1.0,
-  "latency_ms": 242,
+  "latency_ms": 318,
   "protocol_checks": {
     "junglebus": "untested"
   },
