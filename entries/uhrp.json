@@ -5,7 +5,7 @@
     "category": "storage",
     "summary": "Universal Hash Resolution Protocol — decentralized content-addressed storage/discovery; hosts advertise file availability via PushDrop tokens on overlay. Content addressing for the on-chain web.",
     "repo": "https://github.com/bitcoin-sv/BRCs",
-    "url": "https://bsv.brc.dev/apps/0026",
+    "url": "https://brc.dev/26",
     "protocols": [
       "uhrp",
       "brc-26",
