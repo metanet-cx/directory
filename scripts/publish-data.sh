@@ -60,3 +60,20 @@ STAMP="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 git -C "$WT" commit -q -m "attestor store: $STAMP"
 git -C "$WT" push -q origin "$BRANCH"
 echo "publish-data: pushed attestation store to origin/$BRANCH ($STAMP)"
+
+# Trigger a Cloudflare Pages rebuild so the live site reflects the new store.
+# Pages only auto-builds on `main`, not `data`, so the data push alone won't
+# refresh the site — this deploy hook does. The hook URL is a secret: it's read
+# from a mode-600 env file outside the repo (never committed, never echoed). If
+# the file/var is absent (e.g. a local run), we skip the trigger silently; the
+# store is still published and will show on the next main-triggered build.
+HOOK_ENV="${METANET_CX_HOOK_ENV:-$HOME/.openclaw/secrets/metanet-cx.env}"
+if [ -z "${METANET_CX_DEPLOY_HOOK:-}" ] && [ -f "$HOOK_ENV" ]; then
+  set -a; . "$HOOK_ENV"; set +a
+fi
+if [ -n "${METANET_CX_DEPLOY_HOOK:-}" ]; then
+  code="$(curl -s -o /dev/null -w '%{http_code}' -X POST "$METANET_CX_DEPLOY_HOOK" || echo 000)"
+  echo "publish-data: deploy hook POST -> HTTP $code"
+else
+  echo "publish-data: no deploy hook configured; skipping rebuild trigger"
+fi
