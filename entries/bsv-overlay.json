@@ -6,6 +6,7 @@
     "summary": "Core TS overlay engine — topic managers, lookup services, SHIP/SLAP/GASP/BASM, pluggable storage backends. The discovery/routing layer for BRC-100 apps.",
     "repo": "https://github.com/bsv-blockchain/ts-stack",
     "url": "https://www.npmjs.com/package/@bsv/overlay",
+    "probe_url": "https://registry.npmjs.org/@bsv/overlay",
     "protocols": [
       "ship",
       "slap",

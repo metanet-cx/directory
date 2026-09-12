@@ -6,6 +6,7 @@
     "summary": "Zero-dependency core TS primitives — keys, signatures, Script, transactions, BEEF, Merkle paths, BRC-100 types. The shared language most of the stack routes through.",
     "repo": "https://github.com/bsv-blockchain/ts-stack",
     "url": "https://www.npmjs.com/package/@bsv/sdk",
+    "probe_url": "https://registry.npmjs.org/@bsv/sdk",
     "protocols": [
       "brc-100",
       "beef",

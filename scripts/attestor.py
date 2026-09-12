@@ -83,15 +83,26 @@ def _mock(seed: str) -> float:
 
 # --- probes (stubbed; --live will swap these for real network calls) ---------
 
-def probe_liveness(slug: str, url: str | None, live_net: bool) -> tuple[bool, int | None]:
-    if not url:
+def probe_liveness(slug: str, url: str | None, live_net: bool,
+                   probe_url: str | None = None) -> tuple[bool, int | None]:
+    """Liveness check. Probes `probe_url` when the entry provides one (for pages
+    the attestor can't fairly hit directly, e.g. npm package pages behind a
+    bot-wall); otherwise probes `url`. A 403/429 from a bot-wall CDN is NOT
+    treated as "down" — the host answered, it just refused an automated client.
+    That's an honest "unverified", not a claim the service is dead."""
+    target = probe_url or url
+    if not target:
         return False, None
     if live_net:
         try:
-            status, _, elapsed = _http_get(url)
+            status, _, elapsed = _http_get(target)
         except urllib.error.HTTPError as e:
-            # Reachable but returned an error status. 4xx/5xx = not "live" for
-            # our purposes; the host answered but the service isn't serving.
+            # Bot-wall / rate-limit: the host IS up, it just blocks automated
+            # clients. Don't libel a live service as down — report not-live
+            # without latency, same as any unverified case.
+            if e.code in (403, 429):
+                return False, None
+            # Other error statuses: host answered but the service isn't serving.
             return (200 <= e.code < 400), None
         except (urllib.error.URLError, ssl.SSLError, OSError, ValueError):
             return False, None
@@ -216,7 +227,8 @@ def attest_entry(path: pathlib.Path, live_net: bool) -> dict:
     slug = claimed.get("slug", path.stem)
     checked_at = _now()
 
-    live, latency = probe_liveness(slug, claimed.get("url"), live_net)
+    live, latency = probe_liveness(slug, claimed.get("url"), live_net,
+                                   claimed.get("probe_url"))
     checks = {p: probe_protocol(slug, p, claimed.get("url"), live_net)
               for p in (claimed.get("protocols") or [])}
     onchain = spv_verify(claimed.get("onchain_txid"), live_net)

@@ -20,9 +20,13 @@ CATEGORIES = {
 SELF_TIERS = {"S", "A", "B", "C", None}
 
 # Fields a PR author may set. Anything else under claimed: is rejected.
+# probe_url is optional: the URL the attestor hits for the liveness check when
+# `url` is a human-facing page the attestor can't fairly probe (e.g. an npm
+# package page that bot-walls automated requests). If omitted, liveness probes
+# `url` itself. It never affects what's displayed — only what's measured.
 CLAIMED_FIELDS = {
     "name", "slug", "category", "summary", "repo", "url",
-    "protocols", "onchain_txid", "self_tier", "submitted_by",
+    "protocols", "onchain_txid", "self_tier", "submitted_by", "probe_url",
 }
 CLAIMED_REQUIRED = {"name", "slug", "category", "summary", "submitted_by"}
 
@@ -59,4 +63,7 @@ def validate_claimed(slug: str, claimed: dict) -> list[str]:
     protos = claimed.get("protocols")
     if protos is not None and not (isinstance(protos, list) and all(isinstance(p, str) for p in protos)):
         errs.append(f"{slug}: protocols must be a list of strings")
+    probe = claimed.get("probe_url")
+    if probe is not None and not (isinstance(probe, str) and probe.startswith("https://")):
+        errs.append(f"{slug}: probe_url must be an https:// URL or omitted")
     return errs
