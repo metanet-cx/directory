@@ -1,0 +1,16 @@
+{
+  "checked_at": "2026-09-12T09:22:37+00:00",
+  "live": true,
+  "uptime_90d": 1.0,
+  "latency_ms": 274,
+  "protocol_checks": {
+    "ship": "untested",
+    "slap": "untested",
+    "gasp": "untested",
+    "brc-100": "untested"
+  },
+  "onchain_verified": false,
+  "repo_public": true,
+  "last_commit": "2026-09-10T22:41:26Z",
+  "attestor_version": "0.2.0"
+}

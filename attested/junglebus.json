@@ -1,0 +1,13 @@
+{
+  "checked_at": "2026-09-12T09:22:39+00:00",
+  "live": true,
+  "uptime_90d": 1.0,
+  "latency_ms": 201,
+  "protocol_checks": {
+    "junglebus": "untested"
+  },
+  "onchain_verified": false,
+  "repo_public": false,
+  "last_commit": null,
+  "attestor_version": "0.2.0"
+}
