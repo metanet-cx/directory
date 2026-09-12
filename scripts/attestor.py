@@ -37,17 +37,38 @@ import datetime as dt
 import hashlib
 import json
 import pathlib
+import ssl
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
 
 from schema import ENTRIES_DIR, ENTRY_GLOB
 
-ATTESTOR_VERSION = "0.1.0"
+ATTESTOR_VERSION = "0.2.0"
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SERIES_DIR = ROOT / "data" / "series"
 ATTESTED_DIR = ROOT / "data" / "attested"
 
-# Protocols we have a real probe defined for. Anything else -> "untested"
-# (honestly labeled, never faked as pass).
-PROBE_DEFINED = {"paymail", "brc-100"}
+# Protocols we have a REAL probe defined for. Anything else -> "untested"
+# (honestly labeled, never faked as pass). brc-100 has no universal
+# unauthenticated probe yet, so it stays untested until one is defined —
+# claiming a pass we didn't measure is the exact lie the project forbids.
+PROBE_DEFINED = {"paymail"}
+
+HTTP_TIMEOUT = 10  # seconds
+USER_AGENT = f"metanet.cx-attestor/{ATTESTOR_VERSION} (+https://metanet.cx)"
+
+
+def _http_get(url: str, timeout: int = HTTP_TIMEOUT) -> tuple[int, bytes, float]:
+    """GET a URL. Returns (status, body, elapsed_ms). Raises on network error."""
+    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+    ctx = ssl.create_default_context()
+    t0 = time.monotonic()
+    with urllib.request.urlopen(req, timeout=timeout, context=ctx) as resp:
+        body = resp.read()
+        elapsed = (time.monotonic() - t0) * 1000
+        return resp.status, body, elapsed
 
 
 def _now() -> str:
@@ -66,10 +87,43 @@ def probe_liveness(slug: str, url: str | None, live_net: bool) -> tuple[bool, in
     if not url:
         return False, None
     if live_net:
-        raise NotImplementedError("real HTTP probe not wired yet — run without --live")
+        try:
+            status, _, elapsed = _http_get(url)
+        except urllib.error.HTTPError as e:
+            # Reachable but returned an error status. 4xx/5xx = not "live" for
+            # our purposes; the host answered but the service isn't serving.
+            return (200 <= e.code < 400), None
+        except (urllib.error.URLError, ssl.SSLError, OSError, ValueError):
+            return False, None
+        return (200 <= status < 400), int(elapsed)
     r = _mock(slug + "|live")
     up = r > 0.05  # ~95% of mocked hosts up
     return up, (int(80 + r * 400) if up else None)
+
+
+def _paymail_probe(url: str | None) -> str:
+    """Real BSVAlias service discovery: fetch <domain>/.well-known/bsvalias and
+    confirm it's a valid capabilities document. pass|fail only (never faked)."""
+    if not url:
+        return "fail"
+    host = urllib.parse.urlparse(url).netloc or urllib.parse.urlparse("//" + url).netloc
+    host = host.split("@")[-1].split(":")[0]  # strip any userinfo/port
+    if not host:
+        return "fail"
+    try:
+        status, body, _ = _http_get(f"https://{host}/.well-known/bsvalias")
+    except (urllib.error.HTTPError, urllib.error.URLError, ssl.SSLError, OSError, ValueError):
+        return "fail"
+    if status != 200:
+        return "fail"
+    try:
+        doc = json.loads(body)
+    except (ValueError, UnicodeDecodeError):
+        return "fail"
+    # A valid bsvalias doc advertises a bsvalias version + a capabilities map.
+    if isinstance(doc, dict) and "bsvalias" in doc and isinstance(doc.get("capabilities"), dict):
+        return "pass"
+    return "fail"
 
 
 def probe_protocol(slug: str, proto: str, url: str | None, live_net: bool) -> str:
@@ -78,25 +132,58 @@ def probe_protocol(slug: str, proto: str, url: str | None, live_net: bool) -> st
     if not url:
         return "fail"
     if live_net:
-        raise NotImplementedError("real protocol probe not wired yet — run without --live")
+        if proto == "paymail":
+            return _paymail_probe(url)
+        return "untested"
     return "pass" if _mock(slug + "|" + proto) > 0.15 else "fail"
 
 
 def spv_verify(txid: str | None, live_net: bool) -> bool:
-    """THE ONLY BOX-COUPLED CALL. Today: local SPV node over localhost.
-    To relocate off-box, replace this body with an auth'd POST to bsv.cx/verify."""
+    """THE ONLY BOX-COUPLED CALL. Intended: local SPV node over localhost.
+    To relocate off-box, replace this body with an auth'd POST to bsv.cx/verify.
+
+    NOT YET WIRED: the SV node is still syncing and not reachable from here, so
+    in live mode we honestly return False (unverified) rather than fabricate a
+    result. No current seed entry claims an onchain_txid, so this is a no-op for
+    now — it becomes real once the node is synced and this body calls it."""
     if not txid:
         return False
     if live_net:
-        raise NotImplementedError("SPV localhost call not wired yet — run without --live")
+        return False  # node not yet available; unverified is the honest answer
     return _mock(txid + "|spv") > 0.5
+
+
+def _github_repo_probe(repo: str) -> tuple[bool, str | None]:
+    """Real GitHub probe. Returns (repo_public, last_commit_iso).
+    Unauthenticated API (fine for a handful of entries); on rate-limit or any
+    error we return (False, None) rather than guessing."""
+    p = urllib.parse.urlparse(repo)
+    if p.netloc.lower() not in ("github.com", "www.github.com"):
+        return False, None  # only GitHub probe defined; others honestly unknown
+    parts = [x for x in p.path.split("/") if x]
+    if len(parts) < 2:
+        return False, None
+    owner, name = parts[0], parts[1].removesuffix(".git")
+    try:
+        status, body, _ = _http_get(f"https://api.github.com/repos/{owner}/{name}")
+    except (urllib.error.HTTPError, urllib.error.URLError, ssl.SSLError, OSError, ValueError):
+        return False, None
+    if status != 200:
+        return False, None
+    try:
+        meta = json.loads(body)
+    except (ValueError, UnicodeDecodeError):
+        return False, None
+    public = (meta.get("private") is False)
+    last_commit = meta.get("pushed_at")  # ISO8601 of most recent push
+    return public, last_commit
 
 
 def probe_repo(slug: str, repo: str | None, live_net: bool) -> tuple[bool, str | None]:
     if not repo:
         return False, None
     if live_net:
-        raise NotImplementedError("real repo probe not wired yet — run without --live")
+        return _github_repo_probe(repo)
     days_ago = int(_mock(slug + "|commit") * 400)
     last = (dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=days_ago)).date().isoformat()
     return True, last + "T00:00:00Z"
@@ -158,7 +245,8 @@ def attest_entry(path: pathlib.Path, live_net: bool) -> dict:
 def main() -> int:
     ap = argparse.ArgumentParser(description="metanet.cx attestor (stub)")
     ap.add_argument("--live", action="store_true",
-                    help="use real network/SPV probes (not wired yet — will raise)")
+                    help="use real network probes (HTTP liveness, Paymail, GitHub). "
+                         "On-chain SPV verify is still stubbed until the node is synced.")
     ap.add_argument("--slug", help="attest a single entry by slug")
     args = ap.parse_args()
 
