@@ -1,0 +1,17 @@
+{
+  "claimed": {
+    "name": "go-sdk",
+    "slug": "go-sdk",
+    "category": "sdk",
+    "summary": "Go counterpart to @bsv/sdk — keys, Script, transactions, BEEF, Merkle paths; cross-language conformance with the TS vectors.",
+    "repo": "https://github.com/bsv-blockchain/go-sdk",
+    "url": "https://github.com/bsv-blockchain/go-sdk",
+    "protocols": [
+      "brc-100",
+      "beef"
+    ],
+    "onchain_txid": null,
+    "self_tier": "B",
+    "submitted_by": "bsv-blockchain"
+  }
+}

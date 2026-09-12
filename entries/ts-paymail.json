@@ -1,0 +1,18 @@
+{
+  "claimed": {
+    "name": "@bsv/paymail (ts-paymail)",
+    "slug": "ts-paymail",
+    "category": "identity",
+    "summary": "TypeScript Paymail server/client library implementing the BSVAlias/BRC-28 protocol.",
+    "repo": "https://github.com/bsv-blockchain/ts-paymail",
+    "url": "https://www.npmjs.com/package/@bsv/paymail",
+    "probe_url": "https://registry.npmjs.org/@bsv/paymail",
+    "protocols": [
+      "paymail",
+      "brc-28"
+    ],
+    "onchain_txid": null,
+    "self_tier": "C",
+    "submitted_by": "bsv-blockchain"
+  }
+}

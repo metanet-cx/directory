@@ -1,0 +1,17 @@
+{
+  "claimed": {
+    "name": "@bsv/wallet-toolbox",
+    "slug": "bsv-wallet-toolbox",
+    "category": "sdk",
+    "summary": "Full BRC-100-conforming wallet implementation — storage backends (SQLite/MySQL/IndexedDB/remote), signer, monitor.",
+    "repo": "https://github.com/bsv-blockchain/ts-stack",
+    "url": "https://www.npmjs.com/package/@bsv/wallet-toolbox",
+    "probe_url": "https://registry.npmjs.org/@bsv/wallet-toolbox",
+    "protocols": [
+      "brc-100"
+    ],
+    "onchain_txid": null,
+    "self_tier": "B",
+    "submitted_by": "bsv-blockchain"
+  }
+}

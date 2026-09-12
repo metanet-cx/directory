@@ -1,0 +1,17 @@
+{
+  "claimed": {
+    "name": "sCrypt (scrypt-ts)",
+    "slug": "scrypt",
+    "category": "sdk",
+    "summary": "TypeScript-embedded smart-contract language for BSV, compiling to Bitcoin Script; IDE, testing, deploy tooling.",
+    "repo": "https://github.com/sCrypt-Inc/scryptlib",
+    "url": "https://docs.scrypt.io",
+    "probe_url": "https://registry.npmjs.org/scrypt-ts",
+    "protocols": [
+      "bitcoin-script"
+    ],
+    "onchain_txid": null,
+    "self_tier": "B",
+    "submitted_by": "sCrypt-Inc"
+  }
+}

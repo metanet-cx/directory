@@ -1,0 +1,16 @@
+{
+  "claimed": {
+    "name": "Metanet Desktop",
+    "slug": "metanet-desktop",
+    "category": "wallet",
+    "summary": "Cross-platform (Tauri) BRC-100 reference wallet exposing a local JSON API for signing/payments/encryption.",
+    "repo": "https://github.com/bsv-blockchain/metanet-desktop",
+    "url": "https://github.com/bsv-blockchain/metanet-desktop",
+    "protocols": [
+      "brc-100"
+    ],
+    "onchain_txid": null,
+    "self_tier": "B",
+    "submitted_by": "bsv-blockchain"
+  }
+}

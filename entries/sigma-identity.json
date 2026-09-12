@@ -1,0 +1,17 @@
+{
+  "claimed": {
+    "name": "Sigma Identity",
+    "slug": "sigma-identity",
+    "category": "identity",
+    "summary": "Self-sovereign, portable on-chain identity protocol — a login/trust layer for apps and agents, credentials attested on BSV.",
+    "repo": "https://github.com/opldotdev",
+    "url": "https://sigmaidentity.com",
+    "protocols": [
+      "sigma",
+      "brc-100"
+    ],
+    "onchain_txid": null,
+    "self_tier": "C",
+    "submitted_by": "opldotdev"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "claimed": {
+    "name": "go-overlay-services",
+    "slug": "go-overlay-services",
+    "category": "overlay",
+    "summary": "Go implementation of BSV Overlay Services — embeddable HTTP server/library for topic managers and lookup services.",
+    "repo": "https://github.com/bsv-blockchain/go-overlay-services",
+    "url": "https://github.com/bsv-blockchain/go-overlay-services",
+    "protocols": [
+      "ship",
+      "slap",
+      "brc-100"
+    ],
+    "onchain_txid": null,
+    "self_tier": "C",
+    "submitted_by": "bsv-blockchain"
+  }
+}
