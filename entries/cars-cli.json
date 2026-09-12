@@ -1,0 +1,17 @@
+{
+  "claimed": {
+    "name": "CARS",
+    "slug": "cars-cli",
+    "category": "other",
+    "summary": "Cloud Automated Runtime System — Kubernetes-based cloud deploy for overlay services (CI/CD, scaling), production counterpart to LARS.",
+    "repo": "https://github.com/bsv-blockchain/cars-cli",
+    "url": "https://www.npmjs.com/package/@bsv/cars-cli",
+    "probe_url": "https://registry.npmjs.org/@bsv/cars-cli",
+    "protocols": [
+      "brc-102"
+    ],
+    "onchain_txid": null,
+    "self_tier": "C",
+    "submitted_by": "bsv-blockchain"
+  }
+}

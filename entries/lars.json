@@ -1,0 +1,17 @@
+{
+  "claimed": {
+    "name": "LARS",
+    "slug": "lars",
+    "category": "other",
+    "summary": "Local Automated Runtime System — CLI that auto-configures Docker Compose for local overlay-services dev from deployment-info.json.",
+    "repo": "https://github.com/bsv-blockchain/lars",
+    "url": "https://www.npmjs.com/package/@bsv/lars",
+    "probe_url": "https://registry.npmjs.org/@bsv/lars",
+    "protocols": [
+      "brc-102"
+    ],
+    "onchain_txid": null,
+    "self_tier": "C",
+    "submitted_by": "bsv-blockchain"
+  }
+}

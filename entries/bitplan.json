@@ -1,0 +1,17 @@
+{
+  "claimed": {
+    "name": "BitPlan",
+    "slug": "bitplan",
+    "category": "social",
+    "summary": "Encrypted, versioned HTML plans published as 1Sat Ordinal inscriptions via a BRC-100 wallet; hosted drafts plus on-chain permanence.",
+    "repo": "https://github.com/opldotdev/bitplan.dev",
+    "url": "https://bitplan.dev",
+    "protocols": [
+      "1sat",
+      "brc-100"
+    ],
+    "onchain_txid": null,
+    "self_tier": "C",
+    "submitted_by": "opldotdev"
+  }
+}
