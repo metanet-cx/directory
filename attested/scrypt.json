@@ -1,8 +1,8 @@
 {
-  "checked_at": "2026-09-13T00:30:23+00:00",
+  "checked_at": "2026-09-13T01:00:21+00:00",
   "live": true,
   "uptime_90d": 1.0,
-  "latency_ms": 927,
+  "latency_ms": 788,
   "protocol_checks": {
     "bitcoin-script": "untested"
   },
@@ -11,7 +11,7 @@
       "state": "na",
       "method": "na",
       "by": null,
-      "at": "2026-09-13T00:30:23+00:00",
+      "at": "2026-09-13T01:00:21+00:00",
       "note": null
     }
   },
