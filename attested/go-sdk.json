@@ -1,8 +1,8 @@
 {
-  "checked_at": "2026-09-15T03:30:09+00:00",
+  "checked_at": "2026-09-15T04:00:09+00:00",
   "live": true,
   "uptime_90d": 1.0,
-  "latency_ms": 1086,
+  "latency_ms": 1143,
   "protocol_checks": {
     "brc-100": "untested",
     "beef": "untested"
@@ -12,19 +12,19 @@
       "state": "na",
       "method": "na",
       "by": null,
-      "at": "2026-09-15T03:30:09+00:00",
+      "at": "2026-09-15T04:00:09+00:00",
       "note": null
     },
     "beef": {
       "state": "na",
       "method": "na",
       "by": null,
-      "at": "2026-09-15T03:30:09+00:00",
+      "at": "2026-09-15T04:00:09+00:00",
       "note": null
     }
   },
   "onchain_verified": false,
   "repo_public": true,
-  "last_commit": "2026-09-14T16:50:36Z",
+  "last_commit": "2026-09-15T03:42:12Z",
   "attestor_version": "0.3.0"
 }
