@@ -1,8 +1,8 @@
 {
-  "checked_at": "2026-09-18T19:00:15+00:00",
+  "checked_at": "2026-09-18T19:30:16+00:00",
   "live": true,
-  "uptime_90d": 0.9518,
-  "latency_ms": 588,
+  "uptime_90d": 0.952,
+  "latency_ms": 508,
   "protocol_checks": {
     "uhrp": "untested",
     "brc-26": "untested",
@@ -13,26 +13,26 @@
       "state": "na",
       "method": "na",
       "by": null,
-      "at": "2026-09-18T19:00:15+00:00",
+      "at": "2026-09-18T19:30:16+00:00",
       "note": null
     },
     "brc-26": {
       "state": "na",
       "method": "na",
       "by": null,
-      "at": "2026-09-18T19:00:15+00:00",
+      "at": "2026-09-18T19:30:16+00:00",
       "note": null
     },
     "ship": {
       "state": "na",
       "method": "na",
       "by": null,
-      "at": "2026-09-18T19:00:15+00:00",
+      "at": "2026-09-18T19:30:16+00:00",
       "note": null
     }
   },
   "onchain_verified": false,
   "repo_public": true,
-  "last_commit": "2026-09-18T19:00:00Z",
+  "last_commit": "2026-09-18T19:25:24Z",
   "attestor_version": "0.3.0"
 }
