@@ -1,8 +1,8 @@
 {
-  "checked_at": "2026-09-22T16:30:00+00:00",
+  "checked_at": "2026-09-22T17:00:00+00:00",
   "live": true,
   "uptime_90d": 1.0,
-  "latency_ms": 180,
+  "latency_ms": 192,
   "protocol_checks": {
     "1sat": "untested",
     "brc-100": "untested"
@@ -12,7 +12,7 @@
       "state": "na",
       "method": "na",
       "by": null,
-      "at": "2026-09-22T16:30:00+00:00",
+      "at": "2026-09-22T17:00:00+00:00",
       "note": null
     },
     "brc-100": {
@@ -24,7 +24,7 @@
     }
   },
   "onchain_verified": false,
-  "repo_public": true,
-  "last_commit": "2026-07-29T03:22:11Z",
+  "repo_public": false,
+  "last_commit": null,
   "attestor_version": "0.3.0"
 }
