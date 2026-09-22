@@ -1,8 +1,8 @@
 {
-  "checked_at": "2026-09-22T21:30:12+00:00",
+  "checked_at": "2026-09-22T22:00:11+00:00",
   "live": true,
-  "uptime_90d": 0.9741,
-  "latency_ms": 231,
+  "uptime_90d": 0.9742,
+  "latency_ms": 308,
   "protocol_checks": {
     "paymail": "untested",
     "brc-28": "untested"
@@ -12,14 +12,14 @@
       "state": "na",
       "method": "na",
       "by": null,
-      "at": "2026-09-22T21:30:12+00:00",
+      "at": "2026-09-22T22:00:11+00:00",
       "note": null
     },
     "brc-28": {
       "state": "na",
       "method": "na",
       "by": null,
-      "at": "2026-09-22T21:30:12+00:00",
+      "at": "2026-09-22T22:00:11+00:00",
       "note": null
     }
   },
