@@ -1,8 +1,8 @@
 {
-  "checked_at": "2026-09-23T00:00:05+00:00",
+  "checked_at": "2026-09-23T00:30:05+00:00",
   "live": true,
   "uptime_90d": 1.0,
-  "latency_ms": 403,
+  "latency_ms": 425,
   "protocol_checks": {
     "brc-100": "untested",
     "brc-121": "untested",
@@ -13,21 +13,21 @@
       "state": "na",
       "method": "na",
       "by": null,
-      "at": "2026-09-23T00:00:05+00:00",
+      "at": "2026-09-23T00:30:05+00:00",
       "note": null
     },
     "brc-121": {
       "state": "na",
       "method": "na",
       "by": null,
-      "at": "2026-09-23T00:00:05+00:00",
+      "at": "2026-09-23T00:30:05+00:00",
       "note": null
     },
     "x402": {
       "state": "na",
       "method": "na",
       "by": null,
-      "at": "2026-09-23T00:00:05+00:00",
+      "at": "2026-09-23T00:30:05+00:00",
       "note": null
     }
   },
