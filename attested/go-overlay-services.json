@@ -1,8 +1,8 @@
 {
-  "checked_at": "2026-09-26T15:00:07+00:00",
+  "checked_at": "2026-09-26T15:30:06+00:00",
   "live": true,
   "uptime_90d": 1.0,
-  "latency_ms": 619,
+  "latency_ms": 540,
   "protocol_checks": {
     "ship": "untested",
     "slap": "untested",
@@ -13,21 +13,21 @@
       "state": "na",
       "method": "na",
       "by": null,
-      "at": "2026-09-26T15:00:07+00:00",
+      "at": "2026-09-26T15:30:06+00:00",
       "note": null
     },
     "slap": {
       "state": "na",
       "method": "na",
       "by": null,
-      "at": "2026-09-26T15:00:07+00:00",
+      "at": "2026-09-26T15:30:06+00:00",
       "note": null
     },
     "brc-100": {
       "state": "na",
       "method": "na",
       "by": null,
-      "at": "2026-09-26T15:00:07+00:00",
+      "at": "2026-09-26T15:30:06+00:00",
       "note": null
     }
   },
