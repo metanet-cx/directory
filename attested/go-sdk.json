@@ -1,8 +1,8 @@
 {
-  "checked_at": "2026-10-16T19:30:08+00:00",
-  "live": true,
-  "uptime_90d": 0.9974,
-  "latency_ms": 710,
+  "checked_at": "2026-10-16T20:01:45+00:00",
+  "live": false,
+  "uptime_90d": 0.9968,
+  "latency_ms": null,
   "protocol_checks": {
     "brc-100": "untested",
     "beef": "untested"
@@ -12,14 +12,14 @@
       "state": "na",
       "method": "na",
       "by": null,
-      "at": "2026-10-16T19:30:08+00:00",
+      "at": "2026-10-16T20:01:45+00:00",
       "note": null
     },
     "beef": {
       "state": "na",
       "method": "na",
       "by": null,
-      "at": "2026-10-16T19:30:08+00:00",
+      "at": "2026-10-16T20:01:45+00:00",
       "note": null
     }
   },
